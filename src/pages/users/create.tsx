@@ -1,12 +1,16 @@
+import * as yup from 'yup';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
+import { useForm } from 'react-hook-form';
+import { useMutation } from '@tanstack/react-query';
+import { yupResolver } from '@hookform/resolvers/yup';
+
+import { api } from '../../services/api';
 import Header from '../../components/Header';
 import { SideBar } from '../../components/Sidebar';
-import * as yup from 'yup';
-import { Box, Button, Divider, Flex, Heading, HStack, SimpleGrid, VStack } from '@chakra-ui/react';
-
 import { Input } from '../../components/Form/Input';
-import Link from 'next/link';
-import { useForm } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
+import { Box, Button, Divider, Flex, Heading, HStack, SimpleGrid, VStack } from '@chakra-ui/react';
+import { queryClient } from '../../services/queryClient';
 
 const createUserSchema = yup.object({
 	name: yup.string().required('Campo Nome obrigatório'),
@@ -18,6 +22,8 @@ const createUserSchema = yup.object({
 type createUserFormData = yup.InferType<typeof createUserSchema>;
 
 export default function CreateUser() {
+	const router = useRouter();
+
 	const {
 		handleSubmit,
 		register,
@@ -26,8 +32,26 @@ export default function CreateUser() {
 		resolver: yupResolver(createUserSchema),
 	});
 
-	function handleCreateUser(data: createUserFormData) {
-		console.log(data);
+	const createUSer = useMutation(
+		async (user: createUserFormData) => {
+			const response = await api.post('/users', {
+				...user,
+				created_at: new Date(),
+			});
+
+			return response.data.user;
+		},
+		{
+			onSuccess: () => {
+				queryClient.invalidateQueries(['users']);
+			},
+		}
+	);
+
+	async function handleCreateUser(data: createUserFormData) {
+		await createUSer.mutateAsync(data);
+
+		router.push('/users');
 	}
 
 	return (

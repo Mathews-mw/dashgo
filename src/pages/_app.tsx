@@ -6,12 +6,11 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { theme } from '../styles/theme';
 import { SidebarDrawerProvider } from '../contexts/SidebarDrawerContext';
+import { queryClient } from '../services/queryClient';
 
 if (process.env.NODE_ENV === 'development') {
 	makeServer();
 }
-
-const queryClient = new QueryClient();
 
 export default function App({ Component, pageProps }: AppProps) {
 	return (
